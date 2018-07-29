@@ -30,7 +30,7 @@ xtend {
 uploadArchives {
   repositories.mavenDeployer {
     repository(url: "file:///${System.properties['user.home']}/artifacts/")
-    pom.version = "1.0.0"
+    pom.version = "1.1.0"
     pom.artifactId = "pxviz"
     pom.groupId = "ca.ubc.stat"
   }
