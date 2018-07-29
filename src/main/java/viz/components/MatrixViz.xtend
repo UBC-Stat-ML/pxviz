@@ -7,13 +7,15 @@ import viz.core.PublicSize
 import viz.core.Viz.PrivateSize
 import viz.core.Viz
 
+import static extension xlinear.MatrixExtensions.*
+
 @Data class MatrixViz extends Viz  {
   val Matrix m
   val CellFiller filler
   
   new (Matrix m, CellFiller filler, PublicSize size) {
     super(size)
-    this.m = m
+    this.m = m.copy
     this.filler = filler
   }
   
