@@ -11,7 +11,7 @@ import viz.core.PublicSize
 class TreeViz<T> extends Viz {
   val T root
   val (T)=>Collection<T> tree // for each node, return the children
-  public var (T)=>Number branchLengths = [1.0f]
+  val (T)=>Number branchLengths
   
   // Imagine root is at time zero, what is the age of the other nodes?
   private val Map<T,Float> times = new LinkedHashMap
@@ -21,17 +21,26 @@ class TreeViz<T> extends Viz {
   
   def int tipIndex(T node) { return tipIndices.get(node) }
   
-  new (T root, (T)=>List<T> tree, PublicSize size) {
+  new (T root, (T)=>List<T> tree, PublicSize size) { 
+    this(root, tree, size, null)
+  }
+  
+  new (T root, (T)=>List<T> tree, PublicSize size, (T)=>Number branchLengths) {
     super(size)
     this.root = root
     this.tree = tree
-    computeTimes(root, 0.0f)
     nLeaves = tipIndices(root, 0)
+    this.branchLengths = 
+      if (branchLengths === null) {
+        val int discreteDepth = discreteDepth(root)     
+        val result = [T node | (nLeaves as double) / discreteDepth]
+        result
+      } else {
+        branchLengths
+      }
+    computeTimes(root, 0.0f)
+    
   }
-//  
-//  new (DirectedTree<T> t, PublicSize size) {
-//    this(t.root, [t.children(it)], size) 
-//  }
   
   private def void computeTimes(T node, float time) {
     times.put(node, time)
@@ -39,6 +48,13 @@ class TreeViz<T> extends Viz {
     for (T child : children(node)) {
       computeTimes(child, time + branchAbove(node))
     }
+  }
+  
+  private def int discreteDepth(T node) {
+    var result = 0
+    for (child : children(node)) 
+      result = Math.max(result, 1 + discreteDepth(child))
+    return result
   }
   
   private def int tipIndices(T node, int firstAvailable) {
