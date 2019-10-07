@@ -6,6 +6,7 @@ import org.eclipse.xtend.lib.annotations.Data
 import blang.inits.experiments.Experiment
 import blang.inits.Arg
 import blang.inits.DefaultValue
+import gifAnimation.GifMaker
 
 abstract class Viz extends Experiment {
   
@@ -32,7 +33,7 @@ abstract class Viz extends Experiment {
     this.publicSize = publicSize
   }
   
-  @Data public static class PrivateSize {
+  @Data static class PrivateSize {
     val float width
     val float height
     new (Number width, Number height) {
@@ -41,11 +42,11 @@ abstract class Viz extends Experiment {
     }
   }
   
-  public static def fixHeight(Number height) {
+  static def fixHeight(Number height) {
     return new PublicSize(true, height.floatValue)
   }
   
-  public static def fixWidth(Number width) {
+  static def fixWidth(Number width) {
     return new PublicSize(false, width.floatValue)
   }
   
@@ -68,7 +69,7 @@ abstract class Viz extends Experiment {
   
   // Use those to avoid confusion in feature calls
   private def void drawViz() { draw }
-  private boolean running = false
+  boolean running = false
   
   protected def void addChild(Viz child, Number x, Number y) {
     child.applet = this.applet
@@ -81,17 +82,22 @@ abstract class Viz extends Experiment {
     popStyle
   }
   
-  def void show() { execute(null) }
+  def void show() { execute(Mode.SHOW, null) }
+  
   def void output(String path) { output(new File(path)) }
-  def void output(File output) { execute(output) }
-  private def void execute(File output) {
+  def void output(File output) { execute(Mode.SAVE_PDF, output) }
+  
+  def void outputAnimatedGif(String path) { outputAnimatedGif(new File(path)) }
+  def void outputAnimatedGif(File output) { execute(Mode.SAVE_ANIMATED_GIF, output) }
+  
+  private def void execute(Mode mode, File output) {
     if (running)
       throw new RuntimeException("Cannot run twice.")
     running = true
-    val toFile = output !== null
+    
     applet = new PApplet {
       override settings() {
-        if (toFile)
+        if (mode == Mode.SAVE_PDF)
           size(publicWidth as int, publicHeight as int, PDF, output.absolutePath)
         else
           size(publicWidth as int, publicHeight as int)
@@ -100,24 +106,47 @@ abstract class Viz extends Experiment {
         background(255)
         scale(scaleRatio, scaleRatio)
         drawViz()
-        if (toFile)
+        if (mode == Mode.SAVE_ANIMATED_GIF)
+          saveGifFrame
+        if (mode == Mode.SAVE_PDF)
           exit
       }
       override exitActual() {
-        if (!toFile) 
+        if (mode == Mode.SHOW) 
           super.exitActual
       }
     }
+    if (mode == Mode.SAVE_ANIMATED_GIF)
+      gif = new GifMaker(applet, output.absolutePath) 
     PApplet.runSketch(#[this.class.simpleName.toString], applet) 
   }
   
-  @Arg        @DefaultValue("false")
-  public boolean showImage = false
+  
+  protected var GifMaker gif = null
+  def private saveGifFrame() { // called automatically
+    if (gif !== null)
+      gif.addFrame
+  }
+  def finishGif() {
+    if (gif !== null) {
+      gif.finish
+      gif = null
+    }
+  }
+  
+  static enum Mode { SHOW, SAVE_PDF, SAVE_ANIMATED_GIF }
+  
+  @Arg      @DefaultValue("SAVE_PDF")
+  public Mode mode = Mode.SAVE_PDF
   override run() {
-    if (showImage) 
+    if (mode == Mode.SHOW) 
       show()
-    else
+    else if (mode == Mode.SAVE_PDF)
       output(results.getFileInResultFolder("output.pdf")) 
+    else if (mode == Mode.SAVE_ANIMATED_GIF)
+      outputAnimatedGif(results.getFileInResultFolder("output.gif")) 
+    else
+      throw new RuntimeException
   }
   
   private def float scaleRatio() { publicWidth / privateSize.width }
