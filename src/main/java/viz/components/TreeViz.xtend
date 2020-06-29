@@ -14,10 +14,10 @@ class TreeViz<T> extends Viz {
   val (T)=>Number branchLengths
   
   // Imagine root is at time zero, what is the age of the other nodes?
-  private val Map<T,Float> times = new LinkedHashMap
+  val Map<T,Float> times = new LinkedHashMap
   public val Map<T,Integer> tipIndices = new LinkedHashMap
-  private val int nLeaves
-  private var float depth = 0.0f
+  val int nLeaves
+  var float depth = 0.0f
   
   def int tipIndex(T node) { return tipIndices.get(node) }
   
