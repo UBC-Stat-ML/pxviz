@@ -1,7 +1,7 @@
 Summary
 -------
 
-[![Build Status](https://travis-ci.org/alexandrebouchard/pxviz.png?branch=master)](https://travis-ci.org/alexandrebouchard/pxviz)
+[![Build Status](https://travis-ci.org/UBC-Stat-ML/pxviz.png?branch=master)](https://travis-ci.org/UBC-Stat-ML/pxviz)
 
 pxviz is a visualization library based on Processing, written in Xtend.
 
